@@ -1,0 +1,11 @@
+version: '1'
+registry_credentials:
+  uzair102/u_repo:
+    secrets_manager_arn: 'arn:aws:secretsmanager:ap-south-1:730335323304:secret:Docker-hub-credentials-mENosM'  # required when using (with no modification) or updating an existing secret
+    container_names:   
+      - frontend
+      - auth-api
+      - todos-api
+      - users-api
+      - log-message-processor
+      

@@ -1,0 +1,78 @@
+# This docker compose version is for running tasks on ecs with amazon-ecs-cli
+# ecs-params.yml and cred_input.yaml are required with this docker-compose.yml
+
+
+## as all the containers are running in single service so we can use localhost as address
+version: "3"
+services:
+  frontend:
+    build: ./frontend
+    image: uzair102/u_repo:frontend
+    environment:
+      PORT: 8080
+      AUTH_API_ADDRESS: http://localhost:8081
+      TODOS_API_ADDRESS: http://localhost:8082
+      ZIPKIN_URL: http://localhost:9411/api/v2/spans
+    ports:
+      - 8080:8080
+    depends_on:
+      - zipkin
+      - auth-api
+      - todos-api
+      - users-api
+
+  auth-api:
+    build: ./auth-api
+    image: uzair102/u_repo:auth-api
+    environment:
+      AUTH_API_PORT: 8081
+      JWT_SECRET: myfancysecret
+      USERS_API_ADDRESS: http://localhost:8083
+      ZIPKIN_URL: http://localhost:9411/api/v2/spans
+    depends_on:
+      - zipkin
+      - users-api
+
+  todos-api:
+    build: ./todos-api
+    image: uzair102/u_repo:todos-api
+    environment:
+      TODO_API_PORT: 8082
+      JWT_SECRET: myfancysecret
+      REDIS_HOST: redis-queue
+      REDIS_PORT: 6379
+      REDIS_CHANNEL: log_channel
+      ZIPKIN_URL: http://localhost:9411/api/v2/spans
+    depends_on:
+      - zipkin
+      - redis-queue
+
+  users-api:
+    build: ./users-api
+    image: uzair102/u_repo:users-api
+    environment:
+     SERVER_PORT: 8083
+     JWT_SECRET: myfancysecret
+     SPRING_ZIPKIN_BASE_URL: http://localhost:9411
+    depends_on:
+      - zipkin
+     
+  log-message-processor:
+    build: ./log-message-processor
+    image: uzair102/u_repo:log-message-processor
+    environment:
+      REDIS_HOST: redis-queue
+      REDIS_PORT: 6379
+      REDIS_CHANNEL: log_channel
+      ZIPKIN_URL: http://localhost:9411/api/v1/spans
+    depends_on:
+      - zipkin
+      - redis-queue
+  
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+
+  redis-queue:
+    image: redis

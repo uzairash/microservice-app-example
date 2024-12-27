@@ -1,0 +1,80 @@
+version: 1
+task_definition:
+  ecs_network_mode: awsvpc
+  task_execution_role: arn:aws:iam::730335323304:role/ecsTaskExecutionRole
+  task_role_arn: arn:aws:iam::730335323304:role/ecsTaskExecutionRole
+  task_size:
+    cpu_limit: 1024
+    mem_limit: 2048  
+  services:
+    frontend:
+      cpu_shares: 256
+      mem_limit: 512MB
+      essential: true
+      # port_mappings:
+      #   - container_port: 8080
+      #     host_port: 8080
+      #     protocol: tcp
+      depends_on:
+        - container_name: zipkin
+          condition: START
+        - container_name: auth-api
+          condition: START
+        - container_name: todos-api
+          condition: START
+        - container_name: users-api
+          condition: START
+    auth-api:
+      cpu_shares: 128
+      mem_limit: 512MB
+      essential: true
+      depends_on:
+        - container_name: zipkin
+          condition: START
+        - container_name: users-api
+          condition: START
+    todos-api:
+      cpu_shares: 128
+      mem_limit: 512MB
+      essential: true
+      depends_on:
+        - container_name: zipkin
+          condition: START
+        - container_name: redis-queue
+          condition: START
+    users-api:
+      cpu_shares: 128
+      mem_limit: 512MB
+      essential: true
+      depends_on:
+        - container_name: zipkin
+          condition: START
+    log-message-processor:
+      cpu_shares: 256
+      mem_limit: 512MB
+      essential: false
+      depends_on:
+        - container_name: zipkin
+          condition: START
+        - container_name: redis-queue
+          condition: START
+    zipkin:
+      cpu_shares: 64
+      mem_limit: 256MB
+      essential: true
+      port_mappings:
+        - container_port: 9411
+          host_port: 9411
+          protocol: tcp
+    redis-queue:
+      cpu_shares: 64
+      mem_limit: 256MB
+      essential: true
+run_params:
+  network_configuration:
+    awsvpc_configuration:
+      subnets:
+        - "subnet-021e4c85656747d98"  # Replace with your subnet ID
+      security_groups:
+        - "sg-0f7d983d4dc5cd3e2"  # Replace with your security group ID
+      assign_public_ip: ENABLED

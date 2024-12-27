@@ -1,0 +1,17 @@
+x-aws-vpc:
+  vpcId: "vpc-0a6b506afbd4c5fd0"  # Your existing VPC ID
+  subnets:
+    public:
+      - "subnet-0f589277124822a92"  # Public Subnet 1
+      # - "subnet-0abcdef0987654321"  # Public Subnet 2
+    # private:
+    #   - "subnet-0fedcba9876543210"  # Private Subnet 1
+    #   - "subnet-0fedcba1234567890"  # Private Subnet 2
+
+x-aws-security-groups:
+  - "sg-0f7d983d4dc5cd3e2"  # Security Group 1
+
+x-aws-defaults:
+  runtime: "FARGATE"  # Use ECS Fargate
+  cpu: "256"          # Default CPU allocation
+  memory: "512"       # Default memory allocation
